@@ -7,11 +7,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.fail;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,10 +35,12 @@ public class MultiplicationJourneyE2ETest {
 
   @BeforeEach
   void setUpWebDriver() {
-    webDriver = new FirefoxDriver();
+    FirefoxOptions options = new FirefoxOptions();
+    options.addPreference("browser.startup.homepage", "about:blank"); // Exemple de préférence
+    webDriver = new FirefoxDriver(options);
     baseUrl = "http://localhost:" + port + "/calculator";
-
   }
+
 
   @AfterEach
   void quitWebDriver() {
@@ -47,27 +50,30 @@ public class MultiplicationJourneyE2ETest {
   }
 
   @Test
-  void multiplyTwoBySixteenMustReturn32(){
+  void multiplyTwoBySixteenMustReturn32() {
+    try {
+      // GIVEN
+      webDriver.get(baseUrl);
+      WebElement leftField = webDriver.findElement(By.id("left"));
+      WebElement typeDropDown = webDriver.findElement(By.id("type"));
+      WebElement rightField = webDriver.findElement(By.id("right"));
+      WebElement submitButton = webDriver.findElement(By.id("submit"));
 
-    //GIVEN
-    webDriver.get(baseUrl);
-    WebElement leftField = webDriver.findElement(By.id("left"));
-    WebElement typeDropDown = webDriver.findElement(By.id("type"));
-    WebElement rightField = webDriver.findElement(By.id("right"));
-    WebElement submitButton = webDriver.findElement(By.id("submit"));
+      // WHEN
+      leftField.sendKeys("2");
+      typeDropDown.sendKeys("x");
+      rightField.sendKeys("16");
+      submitButton.click();
 
-    //WHEN
-    leftField.sendKeys("2");
-    typeDropDown.sendKeys("x");
-    rightField.sendKeys("16");
-    submitButton.click();
-
-    //THEN
-    WebDriverWait waiter = new WebDriverWait(webDriver,5);
-    WebElement solutionElement = waiter.until(ExpectedConditions.presenceOfElementLocated(By.id("solution")));
-    String solution = solutionElement.getText();
-    assertThat(solution).isEqualTo("32");
+      // THEN
+      WebDriverWait waiter = new WebDriverWait(webDriver, 5);
+      WebElement solutionElement = waiter.until(ExpectedConditions.presenceOfElementLocated(By.id("solution")));
+      String solution = solutionElement.getText();
+      assertThat(solution).isEqualTo("32");
+    } catch (Exception e) {
+      e.printStackTrace();
+      fail("Test failed due to an exception: " + e.getMessage());
+    }
   }
-
 
 }
